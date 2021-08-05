@@ -4,12 +4,16 @@ import numpy as np
 from tqdm import tqdm
 import requests
 from os.path import isfile, join
+import os
 
+print(os.environ['HOME'])
+mapbox_key = os.environ['MAPBOX_KEY']
+tf_key = os.environ['TF_KEY']
 
-URLS = {'mapbox': ("https://api.mapbox.com/styles/v1/zoemarschner/ckqmk3o3v0q8y17mx3y0v8hu2/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoiem9lbWFyc2NobmVyIiwiYSI6ImNrYW16eXdibTB1eDgyenBrZXJkb2txZzUifQ.Xbmkj-0Dqf-e1zn_RWuh-Q", 512),
+URLS = {'mapbox': ("https://api.mapbox.com/styles/v1/zoemarschner/ckqmk3o3v0q8y17mx3y0v8hu2/tiles/{z}/{x}/{y}?access_token=" + mapbox_key, 512),
 		'watercolor': ("https://stamen-tiles.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg", 256),
 		'toner': ("https://stamen-tiles.a.ssl.fastly.net/toner/{z}/{x}/{y}.png", 256),
-		'outdoors': ("https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=899e5b713c984073b51950fc2c198908", 256)}
+		'outdoors': ("https://tile.thunderforest.com/outdoors/{z}/{x}/{y}.png?apikey=" + tf_key, 256)}
 
 # tile res is the minimum number of tiles in the height/width, used when making maps
 TILE_RES = 4
@@ -100,12 +104,14 @@ def load_map(tl, br, ar, pad, name):
 	
 	format_str, size = URLS['mapbox']
 
-	avg_lat = tl
-	res = resolution = 156543.03 meters/pixel * cos(latitude) / (2 ^ zoom) * (256/size)
+	avg_lat = (tl[0] + br[0])/2
+	res = 156543.03 * math.cos(avg_lat * math.pi / 180) / (2**zoom) * (256/size) # meters/pixel
+	hundredm_pix = 1/res * 1000 # pix / 100 m
 
 	im_size = np.array([size, size])
 	total_size = (br_tX - tl_tX + 1) * im_size
 
+	scale_amt = hundredm_pix/total_size[0]
 
 	track_fname = join(map_cache_path, f'{name}.png')
 	if not isfile(track_fname):
@@ -127,7 +133,7 @@ def load_map(tl, br, ar, pad, name):
 
 		tiled_im.save(track_fname)
 
-	return zoom, tlX, brX, track_fname
+	return zoom, tlX, brX, track_fname, scale_amt
 		
 
 
