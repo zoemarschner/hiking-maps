@@ -1,3 +1,9 @@
 # hiking-maps
 
-(Under Construction) Makes a pdf of custom topographic maps for a hiking trip from a gpx track.
+(Under Construction) Takes a gpx track of a hike and converts it into a series of printable topographic maps, using OSM tiles and `reportlab` for pdf formatting. 
+
+Coming Soon (maybe):
+- kilometer/mile markers
+- dynamic scale
+- gridlines
+- elevation profile
